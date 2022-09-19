@@ -81,21 +81,12 @@ func (api *API) workspaceAgentMetadata(rw http.ResponseWriter, r *http.Request) 
 
 func (api *API) postWorkspaceAgentVersion(rw http.ResponseWriter, r *http.Request) {
 	workspaceAgent := httpmw.WorkspaceAgent(r)
-	apiAgent, err := convertWorkspaceAgent(api.DERPMap, api.TailnetCoordinator, workspaceAgent, nil, api.AgentInactiveDisconnectTimeout)
-	if err != nil {
-		httpapi.Write(rw, http.StatusInternalServerError, codersdk.Response{
-			Message: "Internal error reading workspace agent.",
-			Detail:  err.Error(),
-		})
-		return
-	}
-
 	var req codersdk.PostWorkspaceAgentVersionRequest
 	if !httpapi.Read(rw, r, &req) {
 		return
 	}
 
-	api.Logger.Info(r.Context(), "post workspace agent version", slog.F("agent_id", apiAgent.ID), slog.F("agent_version", req.Version))
+	api.Logger.Info(r.Context(), "post workspace agent version", slog.F("agent_id", workspaceAgent.ID), slog.F("agent_version", req.Version))
 
 	if !semver.IsValid(req.Version) {
 		httpapi.Write(rw, http.StatusBadRequest, codersdk.Response{
@@ -106,7 +97,7 @@ func (api *API) postWorkspaceAgentVersion(rw http.ResponseWriter, r *http.Reques
 	}
 
 	if err := api.Database.UpdateWorkspaceAgentVersionByID(r.Context(), database.UpdateWorkspaceAgentVersionByIDParams{
-		ID:      apiAgent.ID,
+		ID:      workspaceAgent.ID,
 		Version: req.Version,
 	}); err != nil {
 		httpapi.Write(rw, http.StatusInternalServerError, codersdk.Response{
