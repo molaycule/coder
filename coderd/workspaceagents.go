@@ -428,7 +428,6 @@ func convertApps(dbApps []database.WorkspaceApp) []codersdk.WorkspaceApp {
 			Name:                 dbApp.Name,
 			Command:              dbApp.Command.String,
 			Icon:                 dbApp.Icon,
-			HealthcheckEnabled:   dbApp.HealthcheckEnabled,
 			HealthcheckURL:       dbApp.HealthcheckUrl,
 			HealthcheckInterval:  dbApp.HealthcheckInterval,
 			HealthcheckThreshold: dbApp.HealthcheckThreshold,
@@ -711,7 +710,7 @@ func (api *API) postWorkspaceAppHealth(rw http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		if !old.HealthcheckEnabled {
+		if old.HealthcheckUrl == "" {
 			httpapi.Write(rw, http.StatusNotFound, codersdk.Response{
 				Message: "Error setting workspace app health",
 				Detail:  xerrors.Errorf("health checking is disabled for workspace app %s", name).Error(),
